@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { TmbStatus, Cadastro360Status, Cadastro360Data } from '../App'
+import type { TmbStatus, Cadastro360Status, Cadastro360Data, ValorProdutoStatus } from '../App'
 import { TmbDropdownCard } from './TmbDropdownCard'
 
 interface Props {
@@ -9,9 +9,10 @@ interface Props {
   onToggleCheckout: () => void
   cadastro360Status: Cadastro360Status
   cadastro360Data: Cadastro360Data
+  valorProdutoStatus: ValorProdutoStatus
 }
 
-export function PaymentMethods({ tmbStatus, setTmbStatus, showCheckout, onToggleCheckout, cadastro360Status, cadastro360Data }: Props) {
+export function PaymentMethods({ tmbStatus, setTmbStatus, showCheckout, onToggleCheckout, cadastro360Status, cadastro360Data, valorProdutoStatus }: Props) {
   const [boleto, setBoleto] = useState(true)
   const [cartao, setCartao] = useState(true)
   const [multiplos, setMultiplos] = useState(true)
@@ -112,6 +113,7 @@ export function PaymentMethods({ tmbStatus, setTmbStatus, showCheckout, onToggle
           onToggleCheckout={onToggleCheckout}
           cadastro360Status={cadastro360Status}
           cadastro360Data={cadastro360Data}
+          valorProdutoStatus={valorProdutoStatus}
         />
       </div>
     </>

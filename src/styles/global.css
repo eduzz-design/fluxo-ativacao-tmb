@@ -143,6 +143,12 @@ body {
   transition: transform 0.2s;
 }
 .toggle.on::after { transform: translateX(18px); }
+.toggle--disabled {
+  background: #e5e7eb;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.toggle--disabled::after { background: #f3f4f6; }
 
 /* TMB Dropdown Card */
 .tmb-dropdown {
@@ -197,6 +203,8 @@ body {
 .tmb-info-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .tmb-info-top h4 { font-size: 14px; font-weight: 600; }
 .tmb-desc { font-size: 13px; color: #64748b; }
+.tmb-desc--warning { color: #92400e; display: inline-flex; align-items: center; gap: 6px; }
+.tmb-desc-icon { font-size: 14px; line-height: 1; }
 
 /* Badges */
 .badge {
@@ -206,8 +214,11 @@ body {
 .badge-status-nao-configurado { background: #f1f5f9; color: #64748b; }
 .badge-status-em-preenchimento { background: #fef3c7; color: #92400e; }
 .badge-status-aguardando { background: #dbeafe; color: #1e40af; }
+.badge-status-aguardando-prazo { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
 .badge-status-ativo { background: #dcfce7; color: #166534; }
 .badge-status-erro { background: #fee2e2; color: #991b1b; }
+.badge-status-indisponivel { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.badge-status-bloqueado { background: #fee2e2; color: #7f1d1d; border: 1px solid #fecaca; }
 
 /* Estado panel */
 .estado-panel {
@@ -522,6 +533,26 @@ body {
 }
 .demo-controls-btn:hover { border-color: #3b82f6; color: #1e3a8a; }
 .demo-controls-btn-active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.demo-controls-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f8fafc;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+}
+.demo-controls-btn:disabled:hover {
+  border-color: #e2e8f0;
+  color: #94a3b8;
+}
+.demo-controls-btn-active:disabled {
+  background: #cbd5e1;
+  color: #fff;
+  border-color: #cbd5e1;
+}
+.demo-controls-hint {
+  font-size: 11px; color: #94a3b8; font-style: italic;
+  margin-left: 6px;
+}
 
 /* ========== MOBILE ========== */
 @media (max-width: 768px) {

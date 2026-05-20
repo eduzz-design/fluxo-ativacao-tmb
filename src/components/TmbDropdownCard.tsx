@@ -1,17 +1,22 @@
 import { useState } from 'react'
-import type { TmbStatus, Cadastro360Status, Cadastro360Data } from '../App'
+import type { TmbStatus, Cadastro360Status, Cadastro360Data, ValorProdutoStatus } from '../App'
+import { VALOR_MINIMO_TMB_LABEL } from '../App'
 import { TmbNaoConfigurado } from './estados/TmbNaoConfigurado'
 import { TmbEmPreenchimento } from './estados/TmbEmPreenchimento'
 import { TmbAguardando } from './estados/TmbAguardando'
 import { TmbAtivo } from './estados/TmbAtivo'
 import { TmbErro } from './estados/TmbErro'
+import { TmbBloqueado } from './estados/TmbBloqueado'
+import { TmbAguardandoPrazo } from './estados/TmbAguardandoPrazo'
 
 const statusLabels: Record<TmbStatus, string> = {
   'nao-configurado': 'Não configurado',
   'em-preenchimento': 'Em preenchimento',
   'aguardando': 'Aguardando TMB',
+  'aguardando-prazo': 'Em análise pela TMB',
   'ativo': 'Ativo',
   'erro': 'Erro no cadastro',
+  'bloqueado': 'Bloqueado pela TMB',
 }
 
 interface Props {
@@ -21,12 +26,29 @@ interface Props {
   onToggleCheckout: () => void
   cadastro360Status: Cadastro360Status
   cadastro360Data: Cadastro360Data
+  valorProdutoStatus: ValorProdutoStatus
 }
 
-export function TmbDropdownCard({ status, setStatus, showCheckout, onToggleCheckout, cadastro360Status, cadastro360Data }: Props) {
+export function TmbDropdownCard({ status, setStatus, showCheckout, onToggleCheckout, cadastro360Status, cadastro360Data, valorProdutoStatus }: Props) {
   const [open, setOpen] = useState(false)
 
   const isAtivo = status === 'ativo'
+  const valorAbaixoDoMinimo = valorProdutoStatus === 'abaixo-do-minimo'
+  const tmbBloqueadoPorValor = isAtivo && valorAbaixoDoMinimo
+  const toggleLigado = isAtivo && showCheckout && !valorAbaixoDoMinimo
+
+  let badgeLabel: string
+  let badgeClass: string
+  if (tmbBloqueadoPorValor) {
+    badgeLabel = 'Indisponível'
+    badgeClass = 'badge-status-indisponivel'
+  } else if (isAtivo && !showCheckout) {
+    badgeLabel = 'Desativado'
+    badgeClass = 'badge-status-nao-configurado'
+  } else {
+    badgeLabel = statusLabels[status]
+    badgeClass = `badge-status-${status}`
+  }
 
   const renderEstado = () => {
     switch (status) {
@@ -54,12 +76,20 @@ export function TmbDropdownCard({ status, setStatus, showCheckout, onToggleCheck
             onErro={() => setStatus('erro')}
           />
         )
+      case 'aguardando-prazo':
+        return (
+          <TmbAguardandoPrazo
+            onAprovado={() => setStatus('ativo')}
+            onErro={() => setStatus('erro')}
+          />
+        )
       case 'ativo':
         return (
           <TmbAtivo
             showCheckout={showCheckout}
             onToggleCheckout={onToggleCheckout}
             onDesativar={() => setStatus('nao-configurado')}
+            valorAbaixoDoMinimo={valorAbaixoDoMinimo}
           />
         )
       case 'erro':
@@ -68,6 +98,8 @@ export function TmbDropdownCard({ status, setStatus, showCheckout, onToggleCheck
             onCorrigir={() => setStatus('em-preenchimento')}
           />
         )
+      case 'bloqueado':
+        return <TmbBloqueado />
     }
   }
 
@@ -81,13 +113,20 @@ export function TmbDropdownCard({ status, setStatus, showCheckout, onToggleCheck
               <div className="tmb-info-top">
                 <h4>TMB</h4>
                 <span className="badge badge-partner">Parceiro</span>
-                <span className={`badge ${isAtivo && !showCheckout ? 'badge-status-nao-configurado' : `badge-status-${status}`}`}>
-                  {isAtivo && !showCheckout ? 'Desativado' : statusLabels[status]}
+                <span className={`badge ${badgeClass}`}>
+                  {badgeLabel}
                 </span>
               </div>
-              <p className="tmb-desc">
-                Parcelamento via boleto com análise de crédito pela TMB
-              </p>
+              {tmbBloqueadoPorValor ? (
+                <p className="tmb-desc tmb-desc--warning">
+                  <span className="tmb-desc-icon" aria-hidden>⚠</span>
+                  Produto abaixo do valor mínimo ({VALOR_MINIMO_TMB_LABEL}) aceito pela TMB
+                </p>
+              ) : (
+                <p className="tmb-desc">
+                  Parcelamento via boleto com análise de crédito pela TMB
+                </p>
+              )}
             </div>
           </div>
         </button>
@@ -95,9 +134,14 @@ export function TmbDropdownCard({ status, setStatus, showCheckout, onToggleCheck
         <div className="tmb-header-actions">
           {isAtivo && (
             <button
-              className={`toggle ${showCheckout ? 'on' : ''}`}
-              onClick={e => { e.stopPropagation(); onToggleCheckout() }}
-              title={showCheckout ? 'Desativar no checkout' : 'Ativar no checkout'}
+              className={`toggle ${toggleLigado ? 'on' : ''} ${tmbBloqueadoPorValor ? 'toggle--disabled' : ''}`}
+              onClick={e => { e.stopPropagation(); if (!tmbBloqueadoPorValor) onToggleCheckout() }}
+              disabled={tmbBloqueadoPorValor}
+              title={
+                tmbBloqueadoPorValor
+                  ? `TMB indisponível: produto abaixo do valor mínimo aceito (${VALOR_MINIMO_TMB_LABEL}).`
+                  : showCheckout ? 'Desativar no checkout' : 'Ativar no checkout'
+              }
             />
           )}
           <button className="tmb-chevron-btn" onClick={() => setOpen(v => !v)}>

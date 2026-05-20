@@ -15,39 +15,24 @@ export function TmbEmPreenchimento({ onCancelar, onConfirmar, onDemorou, cadastr
   const hasCadastro360 = cadastro360Status === 'preenchido'
 
   const [vinculo, setVinculo] = useState<Vinculo>('')
-  const [procuracaoArquivo, setProcuracaoArquivo] = useState<string | null>(null)
   const [nome, setNome] = useState(hasCadastro360 ? cadastro360Data.nome : '')
   const [cpf, setCpf] = useState(hasCadastro360 ? cadastro360Data.cpf : '')
   const [aceiteContrato, setAceiteContrato] = useState(false)
   const [aceiteVeracidade, setAceiteVeracidade] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [editando, setEditando] = useState(false)
 
   const dadosVemDoCadastro360 =
     hasCadastro360 &&
-    !editando &&
     nome === cadastro360Data.nome &&
     cpf === cadastro360Data.cpf
 
   const nomeCompleto = nome.trim().split(/\s+/).filter(Boolean).length >= 2
   const dadosPreenchidos = nome.trim() !== '' && cpf.trim() !== ''
-  const vinculoOk = vinculo === 'socio' || (vinculo === 'procurador' && procuracaoArquivo !== null)
+  const vinculoOk = vinculo !== ''
   const canSubmit = vinculoOk && dadosPreenchidos && aceiteContrato && aceiteVeracidade
 
-  const handleEditar = () => setEditando(true)
-  const handleRestaurarCadastro360 = () => {
-    setNome(cadastro360Data.nome)
-    setCpf(cadastro360Data.cpf)
-    setEditando(false)
-  }
-
-  const handleSelecionarVinculo = (novoVinculo: Vinculo) => {
-    setVinculo(novoVinculo)
-    if (hasCadastro360) {
-      setNome(cadastro360Data.nome)
-      setCpf(cadastro360Data.cpf)
-      setEditando(false)
-    }
+  const handleEditarNoCadastro360 = () => {
+    alert('Direciona o produtor para o Cadastro 360 para editar os dados do representante legal.')
   }
 
   const handleConfirmar = () => {
@@ -75,7 +60,6 @@ export function TmbEmPreenchimento({ onCancelar, onConfirmar, onDemorou, cadastr
     )
   }
 
-  const mostrarResumoCadastro360 = hasCadastro360 && !editando
 
   return (
     <div className="estado-panel">
@@ -92,7 +76,7 @@ export function TmbEmPreenchimento({ onCancelar, onConfirmar, onDemorou, cadastr
             name="vinculo"
             value="socio"
             checked={vinculo === 'socio'}
-            onChange={() => handleSelecionarVinculo('socio')}
+            onChange={() => setVinculo('socio')}
           />
           <span>
             <span className="radio-title">Sou sócio da empresa</span>
@@ -106,45 +90,14 @@ export function TmbEmPreenchimento({ onCancelar, onConfirmar, onDemorou, cadastr
             name="vinculo"
             value="procurador"
             checked={vinculo === 'procurador'}
-            onChange={() => handleSelecionarVinculo('procurador')}
+            onChange={() => setVinculo('procurador')}
           />
           <span>
             <span className="radio-title">Sou procurador da empresa</span>
-            <span className="radio-desc">Não estou no contrato social. É obrigatório anexar a procuração.</span>
+            <span className="radio-desc">Não estou no contrato social. A procuração foi validada no Cadastro 360.</span>
           </span>
         </label>
       </div>
-
-      {vinculo === 'procurador' && (
-        <div className="form-group">
-          <label className="form-label">Procuração (obrigatório)</label>
-          <div className="file-upload">
-            {procuracaoArquivo ? (
-              <div className="file-upload-selected">
-                <span className="file-upload-name">{procuracaoArquivo}</span>
-                <div className="file-upload-actions">
-                  <button
-                    type="button"
-                    className="file-upload-link file-upload-link--danger"
-                    onClick={() => setProcuracaoArquivo(null)}
-                  >
-                    Remover
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="file-upload-label"
-                onClick={() => setProcuracaoArquivo('procuracao.pdf')}
-              >
-                Selecionar arquivo (PDF, JPG, PNG)
-              </button>
-            )}
-          </div>
-          <p className="form-hint">A TMB é responsável pela verificação do documento anexado.</p>
-        </div>
-      )}
 
       {vinculo !== '' && (
         <>
@@ -159,46 +112,39 @@ export function TmbEmPreenchimento({ onCancelar, onConfirmar, onDemorou, cadastr
             )}
           </div>
 
-          {hasCadastro360 && (
-            <div className="cadastro360-callout cadastro360-callout--info">
-              <div className="cadastro360-callout-icon" aria-hidden>✓</div>
-              <div className="cadastro360-callout-body">
-                <div className="cadastro360-callout-title">Dados pré-preenchidos pelo Cadastro 360</div>
-                <p className="cadastro360-callout-text">
-                  {editando
-                    ? 'Você está editando os dados que vieram do Cadastro 360. Essas alterações valem apenas para o envio à TMB.'
-                    : 'Reaproveitamos as informações do representante legal já validadas no Cadastro 360. Confira antes de enviar para a TMB.'}
-                </p>
-              </div>
-              <div className="cadastro360-callout-action">
-                {editando ? (
-                  <button type="button" className="link link-button" onClick={handleRestaurarCadastro360}>
-                    ← Voltar para os dados do Cadastro 360
+          {hasCadastro360 ? (
+            <>
+              <div className="cadastro360-callout cadastro360-callout--info">
+                <div className="cadastro360-callout-icon" aria-hidden>✓</div>
+                <div className="cadastro360-callout-body">
+                  <div className="cadastro360-callout-title">Dados pré-preenchidos pelo Cadastro 360</div>
+                  <p className="cadastro360-callout-text">
+                    Reaproveitamos as informações do representante legal já validadas no Cadastro 360.
+                    Para alterar, edite no próprio Cadastro 360 e os dados serão atualizados aqui.
+                  </p>
+                </div>
+                <div className="cadastro360-callout-action">
+                  <button type="button" className="link link-button" onClick={handleEditarNoCadastro360}>
+                    Editar no Cadastro 360 →
                   </button>
-                ) : (
-                  <button type="button" className="link link-button" onClick={handleEditar}>
-                    Editar dados
-                  </button>
-                )}
+                </div>
               </div>
-            </div>
-          )}
 
-          {mostrarResumoCadastro360 ? (
-            <div className="cadastro360-summary">
-              <div className="cadastro360-summary-row">
-                <span className="cadastro360-summary-label">
-                  {vinculo === 'procurador' ? 'Nome completo do procurador' : 'Nome completo do representante legal'}
-                </span>
-                <span className="cadastro360-summary-value">{cadastro360Data.nome}</span>
+              <div className="cadastro360-summary">
+                <div className="cadastro360-summary-row">
+                  <span className="cadastro360-summary-label">
+                    {vinculo === 'procurador' ? 'Nome completo do procurador' : 'Nome completo do representante legal'}
+                  </span>
+                  <span className="cadastro360-summary-value">{cadastro360Data.nome}</span>
+                </div>
+                <div className="cadastro360-summary-row">
+                  <span className="cadastro360-summary-label">
+                    {vinculo === 'procurador' ? 'CPF do procurador' : 'CPF do representante legal'}
+                  </span>
+                  <span className="cadastro360-summary-value">{cadastro360Data.cpf}</span>
+                </div>
               </div>
-              <div className="cadastro360-summary-row">
-                <span className="cadastro360-summary-label">
-                  {vinculo === 'procurador' ? 'CPF do procurador' : 'CPF do representante legal'}
-                </span>
-                <span className="cadastro360-summary-value">{cadastro360Data.cpf}</span>
-              </div>
-            </div>
+            </>
           ) : (
             <>
               <div className="form-group">
